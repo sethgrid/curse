@@ -112,6 +112,34 @@ func (c *Cursor) SetDefaultStyle() *Cursor {
 	return c
 }
 
+// using named returns to help when using the method to know what is what
+func GetScreenDimensions() (cols int, lines int, err error) {
+	// get size
+	cmd := exec.Command("/bin/stty", "size")
+	cmd.Stdin = os.Stdin
+	size, err := cmd.Output()
+	if err != nil {
+		return 70, 15, errors.New(fmt.Sprintf("unable to get dimensions - %s", err))
+	}
+	parts := strings.Split(strings.TrimSpace(string(size)), " ")
+
+	if len(parts) != 2 {
+		return 70, 15, errors.New(fmt.Sprintf("unable to parse dimensions - %s", err))
+	}
+
+	// make ints
+	cols, err = strconv.Atoi(parts[1])
+	if err != nil {
+		return cols, 15, errors.New(fmt.Sprintf("unable to get int dimensions - %s", err))
+	}
+	lines, err = strconv.Atoi(parts[0])
+	if err != nil {
+		return cols, 15, errors.New(fmt.Sprintf("unable to get int dimensions - %s", err))
+	}
+
+	return cols, lines, nil
+}
+
 func setRawMode() {
 	rawMode := exec.Command("/bin/stty", "raw")
 	rawMode.Stdin = os.Stdin
