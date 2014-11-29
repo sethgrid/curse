@@ -10,28 +10,26 @@ A utility for manipulating the terminal cursor. Current feature set:
 
 Example usage:
 
-'''
-package main
 
-import (
-    "fmt"
-    "log"
+    package main
 
-    "github.com/sethgrid/curse"
-)
+    import (
+        "fmt"
+        "log"
 
-func main() {
+        "github.com/sethgrid/curse"
+    )
 
-    c, err := curse.New()
-    if err != nil {
-        log.Fatal(err)
+    func main() {
+
+        c, err := curse.New()
+        if err != nil {
+            log.Fatal(err)
+        }
+
+        c.SetColorBold(curse.RED).SetBackgroundColor(curse.BLACK)
+        fmt.Println("Position: ", c.Position)
+        c.SetDefaultStyle()
+        fmt.Println("something to be erased")
+        c.MoveUp(1).EraseCurrentLine().MoveDown(1)
     }
-
-    c.SetColorBold(curse.RED).SetBackgroundColor(curse.BLACK)
-    fmt.Println("Position: ", c.Position)
-    c.SetDefaultStyle()
-    fmt.Println("something to be erased")
-    c.MoveUp(1).EraseCurrentLine().MoveDown(1)
-}
-
-'''
