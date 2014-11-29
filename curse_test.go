@@ -1,28 +1,28 @@
 package curse
 
-import (
-	"testing"
-)
+import "testing"
 
 func TestMovementY(t *testing.T) {
 	c := &Cursor{}
 	c.MoveDown(2)
 	c.MoveUp(5)
+	newPosition := c.Position
+	c.MoveDown(5).MoveUp(2) // restore
 
-	if c.Position.Y != -3 {
-		t.Errorf("Wrong Y position - got %d, want %d", c.Position.Y, -3)
+	if newPosition.Y != -3 {
+		t.Errorf("Wrong Y position - got %d, want %d", newPosition, -3)
 	}
-	c.Reset()
 }
 
 func TestChainedMovementY(t *testing.T) {
 	c := &Cursor{}
-	c.MoveUp(1).MoveUp(1)
+	c.MoveDown(1).MoveDown(1)
+	newPosition := c.Position
+	c.MoveUp(2) // restore
 
-	if c.Position.Y != -2 {
-		t.Errorf("Wrong Y position - got %d, want %d", c.Position.Y, -2)
+	if newPosition.Y != 2 {
+		t.Errorf("Wrong Y position - got %d, want %d", newPosition.Y, 2)
 	}
-	c.Reset()
 }
 
 func TestEraseCurrentLine(t *testing.T) {
@@ -33,5 +33,4 @@ func TestEraseCurrentLine(t *testing.T) {
 	if c.Position.X != 1 {
 		t.Errorf("Wrong X position - got %d, want %d", c.Position.X, 1)
 	}
-	c.Reset()
 }

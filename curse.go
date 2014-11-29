@@ -1,5 +1,7 @@
 package curse
 
+// http://en.wikipedia.org/wiki/ANSI_escape_code#Sequence_elements
+
 import (
 	"bufio"
 	"errors"
@@ -13,14 +15,29 @@ import (
 
 type Cursor struct {
 	Position
-	Color
+	StartingPosition Position
+	Style
 }
 
 type Position struct {
 	X, Y int
 }
 
-type Color struct{}
+type Style struct {
+	Foreground, Background, Bold int
+}
+
+func New() (*Cursor, error) {
+	line, col, err := GetCursorPosition()
+	if err != nil {
+		return &Cursor{}, err
+	}
+
+	c := &Cursor{}
+	c.Position.X, c.StartingPosition.X = col, col
+	c.Position.Y, c.StartingPosition.Y = line, line
+	return c, nil
+}
 
 func (c *Cursor) MoveUp(nLines int) *Cursor {
 	fmt.Printf("%c[%dA", ESC, nLines)
@@ -40,16 +57,58 @@ func (c *Cursor) EraseCurrentLine() *Cursor {
 	return c
 }
 
+func (c *Cursor) EraseUp() *Cursor {
+	fmt.Printf("%c[1J", ESC)
+	return c
+}
+
+func (c *Cursor) EraseDown() *Cursor {
+	fmt.Printf("%c[0J", ESC)
+	return c
+}
+
+func (c *Cursor) EraseAll() *Cursor {
+	fmt.Printf("%c[0J", ESC)
+	return c
+}
+
 func (c *Cursor) Reset() *Cursor {
-	if c.Position.Y < 0 {
-		c.MoveDown(-1 * c.Position.Y)
-	} else if c.Position.Y == 0 {
-		// no-op
-	} else {
-		c.MoveUp(c.Position.Y)
-	}
-	c.Position.Y = 0
-	c.Position.X = 1
+	c.Move(c.StartingPosition.X, c.StartingPosition.Y)
+	return c
+}
+
+func (c *Cursor) Move(col, line int) *Cursor {
+	fmt.Printf("%c[%d;%df", ESC, line, col)
+	c.Position.X = col
+	c.Position.Y = line
+	return c
+}
+
+func (c *Cursor) SetColor(color int) *Cursor {
+	fmt.Printf("%c[%dm", ESC, FORGROUND+color)
+	c.Style.Foreground = color
+	c.Style.Bold = 0
+	return c
+}
+
+func (c *Cursor) SetColorBold(color int) *Cursor {
+	fmt.Printf("%c[%d;1m", ESC, FORGROUND+color)
+	c.Style.Foreground = color
+	c.Style.Bold = 1
+	return c
+}
+
+func (c *Cursor) SetBackgroundColor(color int) *Cursor {
+	fmt.Printf("%c[%dm", ESC, BACKGROUND+color)
+	c.Style.Foreground = color
+	c.Style.Bold = 0
+	return c
+}
+
+func (c *Cursor) SetDefaultStyle() *Cursor {
+	fmt.Printf("%c[39;49m", ESC)
+	c.Style.Foreground = 0
+	c.Style.Bold = 0
 	return c
 }
 
@@ -73,7 +132,7 @@ func GetCursorPosition() (int, int, error) {
 
 	// same as $ echo -e "\033[6n"
 	// by printing the output, we are triggering input
-	fmt.Printf(fmt.Sprintf("%c[6n", 27))
+	fmt.Printf(fmt.Sprintf("%c[6n", ESC))
 
 	// capture keyboard output from print command
 	reader := bufio.NewReader(os.Stdin)
@@ -99,5 +158,19 @@ func GetCursorPosition() (int, int, error) {
 }
 
 const (
+	// control
 	ESC = 27
+
+	// style
+	BLACK   = 0
+	RED     = 1
+	GREEN   = 2
+	YELLOW  = 3
+	BLUE    = 4
+	MAGENTA = 5
+	CYAN    = 6
+	WHITE   = 7
+
+	FORGROUND  = 30
+	BACKGROUND = 40
 )
