@@ -10,7 +10,7 @@ A utility for manipulating the terminal cursor. Current feature set:
 
 Basic Example usage (see below for an inline-progress bar):
 
-
+```go
     package main
 
     import (
@@ -33,9 +33,11 @@ Basic Example usage (see below for an inline-progress bar):
         fmt.Println("something to be erased")
         c.MoveUp(1).EraseCurrentLine().MoveDown(1)
     }
+```
 
 Progress Bar Example:
 
+```go
     package main
 
     import (
@@ -83,3 +85,7 @@ Progress Bar Example:
         }
         return "[" + strings.Join(bar, "") + "]"
     }
+```    
+    
+## Issues
+There is an issue if you call the constructor or call GetCursorPosition where the terminal, sometimes, does not reset to cooked mode. The fix currently is to "; stty -raw" onto any calling script that uses the GetCursorPosition. Investigating the fix
