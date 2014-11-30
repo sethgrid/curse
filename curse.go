@@ -157,7 +157,8 @@ func setCookedMode() {
 func GetCursorPosition() (col int, line int, err error) {
 	// set terminal to raw mode
 	setRawMode()
-
+	// make sure that cooked mode gets set
+	defer setCookedMode()
 	// same as $ echo -e "\033[6n"
 	// by printing the output, we are triggering input
 	fmt.Printf(fmt.Sprintf("%c[6n", ESC))
@@ -167,9 +168,6 @@ func GetCursorPosition() (col int, line int, err error) {
 
 	// capture the triggered stdin from the print
 	text, _ := reader.ReadSlice('R')
-
-	// restore the terminal mode
-	setCookedMode()
 
 	// check for the desired output
 	re := regexp.MustCompile(`\d+;\d+`)
