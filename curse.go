@@ -140,14 +140,14 @@ func GetScreenDimensions() (cols int, lines int, err error) {
 	return cols, lines, nil
 }
 
-func setRawMode() {
+func SetRawMode() {
 	rawMode := exec.Command("/bin/stty", "raw")
 	rawMode.Stdin = os.Stdin
 	_ = rawMode.Run()
 	rawMode.Wait()
 }
 
-func setCookedMode() {
+func SetCookedMode() {
 	cookedMode := exec.Command("/bin/stty", "-raw")
 	cookedMode.Stdin = os.Stdin
 	_ = cookedMode.Run()
@@ -156,9 +156,8 @@ func setCookedMode() {
 
 func GetCursorPosition() (col int, line int, err error) {
 	// set terminal to raw mode
-	setRawMode()
-	// make sure that cooked mode gets set
-	defer setCookedMode()
+	SetRawMode()
+
 	// same as $ echo -e "\033[6n"
 	// by printing the output, we are triggering input
 	fmt.Printf(fmt.Sprintf("%c[6n", ESC))
@@ -172,6 +171,9 @@ func GetCursorPosition() (col int, line int, err error) {
 	// check for the desired output
 	re := regexp.MustCompile(`\d+;\d+`)
 	res := re.FindString(string(text))
+
+	// make sure that cooked mode gets set
+	SetCookedMode()
 	if res != "" {
 		parts := strings.Split(res, ";")
 		line, _ = strconv.Atoi(parts[0])
