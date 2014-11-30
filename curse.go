@@ -28,7 +28,7 @@ type Style struct {
 }
 
 func New() (*Cursor, error) {
-	line, col, err := GetCursorPosition()
+	col, line, err := GetCursorPosition()
 	if err != nil {
 		return &Cursor{}, err
 	}
@@ -154,7 +154,7 @@ func setCookedMode() {
 	cookedMode.Wait()
 }
 
-func GetCursorPosition() (int, int, error) {
+func GetCursorPosition() (col int, line int, err error) {
 	// set terminal to raw mode
 	setRawMode()
 
@@ -176,9 +176,9 @@ func GetCursorPosition() (int, int, error) {
 	res := re.FindString(string(text))
 	if res != "" {
 		parts := strings.Split(res, ";")
-		line, _ := strconv.Atoi(parts[0])
-		col, _ := strconv.Atoi(parts[1])
-		return line, col, nil
+		line, _ = strconv.Atoi(parts[0])
+		col, _ = strconv.Atoi(parts[1])
+		return col, line, nil
 
 	} else {
 		return 0, 0, errors.New("unable to read cursor position")
