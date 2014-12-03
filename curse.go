@@ -11,6 +11,8 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+
+	"github.com/kless/term"
 )
 
 type Cursor struct {
@@ -114,6 +116,7 @@ func (c *Cursor) SetDefaultStyle() *Cursor {
 
 // using named returns to help when using the method to know what is what
 func GetScreenDimensions() (cols int, lines int, err error) {
+	// todo: use kless/term to listen in on screen size changes
 	// get size
 	cmd := exec.Command("/bin/stty", "size")
 	cmd.Stdin = os.Stdin
@@ -140,14 +143,18 @@ func GetScreenDimensions() (cols int, lines int, err error) {
 	return cols, lines, nil
 }
 
-func SetRawMode() {
+func fallback_SetRawMode() {
 	rawMode := exec.Command("/bin/stty", "raw")
 	rawMode.Stdin = os.Stdin
 	_ = rawMode.Run()
 	rawMode.Wait()
 }
 
-func SetCookedMode() {
+func fallback_SetCookedMode() {
+	// I've noticed that this does not always work when called from
+	// inside the program. From command line, you can run the following
+	// '$ go run calling_app.go; stty -raw'
+	// if you lose the ability to visably enter new text
 	cookedMode := exec.Command("/bin/stty", "-raw")
 	cookedMode.Stdin = os.Stdin
 	_ = cookedMode.Run()
@@ -155,12 +162,19 @@ func SetCookedMode() {
 }
 
 func GetCursorPosition() (col int, line int, err error) {
-	// set terminal to raw mode
-	SetRawMode()
+	// set terminal to raw mode and back
+	t, err := term.New()
+	if err != nil {
+		fallback_SetRawMode()
+		defer fallback_SetCookedMode()
+	} else {
+		t.RawMode()
+		defer t.EchoMode(true)
+	}
 
 	// same as $ echo -e "\033[6n"
 	// by printing the output, we are triggering input
-	fmt.Printf(fmt.Sprintf("%c[6n", ESC))
+	fmt.Printf(fmt.Sprintf("\r%c[6n", ESC))
 
 	// capture keyboard output from print command
 	reader := bufio.NewReader(os.Stdin)
@@ -173,7 +187,6 @@ func GetCursorPosition() (col int, line int, err error) {
 	res := re.FindString(string(text))
 
 	// make sure that cooked mode gets set
-	SetCookedMode()
 	if res != "" {
 		parts := strings.Split(res, ";")
 		line, _ = strconv.Atoi(parts[0])
