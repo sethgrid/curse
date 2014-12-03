@@ -85,7 +85,4 @@ Progress Bar Example:
         }
         return "[" + strings.Join(bar, "") + "]"
     }
-```    
-    
-## Issues
-There is an issue if you call the constructor or call GetCursorPosition where the terminal, sometimes, does not reset to cooked mode. The fix currently is to "; stty -raw" onto any calling script that uses the GetCursorPosition. Investigating the fix
+```
