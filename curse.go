@@ -53,6 +53,18 @@ func (c *Cursor) MoveDown(nLines int) *Cursor {
 	return c
 }
 
+func (c *Cursor) MoveRight(nSpaces int) *Cursor {
+	c.Position.X += nSpaces
+	c.Move(c.Position.X, c.Position.Y)
+	return c
+}
+
+func (c *Cursor) MoveLeft(nSpaces int) *Cursor {
+	c.Position.X -= nSpaces
+	c.Move(c.Position.X, c.Position.Y)
+	return c
+}
+
 func (c *Cursor) EraseCurrentLine() *Cursor {
 	fmt.Printf("%c[2K\r", ESC)
 	c.Position.X = 1
@@ -169,7 +181,7 @@ func GetCursorPosition() (col int, line int, err error) {
 		defer fallback_SetCookedMode()
 	} else {
 		t.RawMode()
-		defer t.EchoMode(true)
+		defer t.Restore()
 	}
 
 	// same as $ echo -e "\033[6n"
