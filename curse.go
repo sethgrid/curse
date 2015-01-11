@@ -19,6 +19,8 @@ type Cursor struct {
 	Position
 	StartingPosition Position
 	Style
+
+	terminal *term.Terminal
 }
 
 type Position struct {
@@ -38,7 +40,8 @@ func New() (*Cursor, error) {
 	c := &Cursor{}
 	c.Position.X, c.StartingPosition.X = col, col
 	c.Position.Y, c.StartingPosition.Y = line, line
-	return c, nil
+	c.terminal, err = term.New()
+	return c, err
 }
 
 func (c *Cursor) MoveUp(nLines int) *Cursor {
@@ -123,6 +126,18 @@ func (c *Cursor) SetDefaultStyle() *Cursor {
 	fmt.Printf("%c[39;49m", ESC)
 	c.Style.Foreground = 0
 	c.Style.Bold = 0
+	return c
+}
+
+func (c *Cursor) ModeRaw() *Cursor {
+	_ = c.terminal.RawMode()
+
+	return c
+}
+
+func (c *Cursor) ModeRestore() *Cursor {
+	_ = c.terminal.Restore()
+
 	return c
 }
 
