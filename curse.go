@@ -144,7 +144,7 @@ func (c *Cursor) ModeRestore() *Cursor {
 
 // using named returns to help when using the method to know what is what
 func GetScreenDimensions() (cols int, lines int, err error) {
-	ws, err := unix.IoctlGetWinsize(fd, unix.TIOCGWINSZ)
+	ws, err := unix.IoctlGetWinsize(0, unix.TIOCGWINSZ)
 	if err != nil {
 		return -1, -1, err
 	}
